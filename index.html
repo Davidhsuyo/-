@@ -432,15 +432,15 @@
         </div>
 
         <div class="chart-controls-panel">
-            <span style="font-size: 13px; font-weight: bold; color: #4a5568;">圖表折線控制：</span>
-            <button class="line-toggle-btn" onclick="toggleLine(0, this)">Pulse (心率)</button>
+            <span style="font-size: 13px; font-weight: bold; color: #4a5568;">圖表折線顯示：</span>
+            <button class="line-toggle-btn" onclick="toggleLine(0, this)">Pulse</button>
             <button class="line-toggle-btn" onclick="toggleLine(1, this)">Sys BP</button>
             <button class="line-toggle-btn" onclick="toggleLine(2, this)">Dia BP</button>
             <button class="line-toggle-btn" onclick="toggleLine(3, this)">Mean BP</button>
-            <button class="line-toggle-btn" onclick="toggleLine(4, this)">SpO2 (血氧)</button>
-            <button class="line-toggle-btn" onclick="toggleLine(5, this)">ETCO2 (吐氣末)</button>
-            <button class="line-toggle-btn" onclick="toggleLine(6, this)">RR (呼吸)</button>
-            <button class="line-toggle-btn" onclick="toggleLine(7, this)">Temp (體溫)</button>
+            <button class="line-toggle-btn" onclick="toggleLine(4, this)">SpO2</button>
+            <button class="line-toggle-btn" onclick="toggleLine(5, this)">ETCO2</button>
+            <button class="line-toggle-btn" onclick="toggleLine(6, this)">RR</button>
+            <button class="line-toggle-btn" onclick="toggleLine(7, this)">Temp</button>
         </div>
         
         <div id="grids-wrapper" style="width: 100%;"></div>
@@ -637,7 +637,7 @@ function initCharts() {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            // 💡 Tooltip 反向運算，顯示使用者輸入的原始真實數值
+                            // Tooltip 反向運算，顯示使用者輸入的原始真實數值
                             label: function(context) {
                                 let val = context.raw;
                                 if (val === null) return '';
@@ -653,7 +653,7 @@ function initCharts() {
                 }, 
                 scales: {
                     x: { grid: { display: true, drawOnChartArea: true, color: '#e2e8f0' }, ticks: { display: false } },
-                    // 💡 完美的等距自適應 Y 軸
+                    // 完美的等距自適應 Y 軸
                     y: { 
                         min: 0, 
                         max: 25, 
@@ -771,7 +771,7 @@ function addRecord() {
     document.getElementById(`row-diabp-${currentGlobalSlot}`).textContent = diaNum !== null ? diaNum : '-';
     document.getElementById(`row-meanbp-${currentGlobalSlot}`).textContent = meanNum !== null ? meanNum : '-';
 
-    // 💡 套用 mapY 將真實數字轉換成圖表 Y 軸座標位置
+    // 套用 mapY 將真實數字轉換成圖表 Y 軸座標位置
     let currentChart = charts[targetPage - 1];
     currentChart.data.datasets[0].data[localSlot] = mapY(pulseNum);
     currentChart.data.datasets[1].data[localSlot] = mapY(sysNum);
@@ -964,7 +964,6 @@ function exportCSV() {
     csvContent += headers.join(",") + "\n";
 
     for(let i = 0; i < currentGlobalSlot; i++) {
-        // 直接從 HTML 網格內抓取「真實輸入字串」，確保與圖表映射無關、不失真
         let row = [
             document.getElementById(`row-time-${i}`).textContent,
             document.getElementById(`row-anes-${i}`).textContent,
