@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evergreen 獸醫麻醉紀錄表</title>
+    <title>Evergreen 獸醫麻醉紀錄表 (8頁自適應圖表版)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* 讓最外層容器可以盡量利用螢幕寬度 */
@@ -17,7 +17,6 @@
         .input-group label { font-size: 11px; font-weight: bold; color: #4a5568; margin-bottom: 4px; white-space: nowrap; }
         .input-group input, .input-group select { padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 13px; text-align: center; }
         
-        /* 💡 確保時間欄位不被 cut 掉 */
         .time-group { width: 130px !important; }
         .time-group input { background-color: #fffaf0; border: 1px solid #f6ad55; font-weight: bold; font-size: 14px; }
         
@@ -30,6 +29,20 @@
         .btn-add { background-color: #2b6cb0; color: white; border: none; border-radius: 4px; padding: 0 25px; font-weight: bold; cursor: pointer; height: 42px; font-size: 15px; }
         .btn-add:hover { background-color: #2c5282; }
         
+        /* --- 分頁與圖表控制面板 --- */
+        .pagination-panel { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; padding: 10px 15px; background: white; border: 3px solid #000; font-weight: bold; }
+        .page-btn { padding: 6px 20px; border: 2px solid #2b6cb0; background: white; color: #2b6cb0; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.2s; }
+        .page-btn.active { background: #2b6cb0; color: white; }
+        .page-view { display: none; }
+        .page-view.active { display: block; }
+
+        /* 圖表折線控制面板 */
+        .chart-controls-panel { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; padding: 8px 15px; background: #ebf8ff; border: 1px solid #90cdf4; border-radius: 6px; }
+        .line-toggle-btn { padding: 4px 15px; border: 2px solid #718096; background: white; color: #4a5568; border-radius: 15px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s; }
+        .line-toggle-btn.active { background: #4a5568; color: white; border-color: #4a5568; }
+        
+        .print-only-header { display: none; } 
+
         /* --- UCD 表單主體 --- */
         .ucd-form-container { background: white; border: 3px solid #000; box-shadow: 0 10px 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; width: 100%; }
         
@@ -64,9 +77,7 @@
         .med-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 11px; table-layout: fixed; }
         .med-table th { border: 1px solid #e2e8f0; padding: 4px; background-color: #edf2f7; font-weight: bold; color: #4a5568; border-top: none; }
         .med-table td { border: 1px solid #e2e8f0; padding: 2px; position: relative; vertical-align: middle; }
-        .med-table input { width: 100%; border: none; outline: none; text-align: center; font-size: 12px; padding: 2px; background: transparent; font-family: inherit; font-weight: bold; color: #2d3748; }
-        .med-table select { border: none; outline: none; background: transparent; font-size: 11px; cursor: pointer; width: 100%; text-align: center; font-family: inherit; font-weight: bold; color: #4a5568;}
-        
+        .med-table input, .med-table select { width: 100%; border: none; outline: none; text-align: center; font-size: 12px; padding: 2px; background: transparent; font-family: inherit; font-weight: bold; color: #2d3748; }
         .calc-result { background-color: #f0fff4 !important; font-weight: bold; color: #276749 !important; }
         .drug-reference { font-size: 9px; color: #2f855a; display: block; text-align: left; padding-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
@@ -80,15 +91,12 @@
         .cri-note-box { font-size: 11px; color: #4a5568; margin: 6px 15px; font-weight: normal; background-color: #edf2f7; padding: 4px 6px; border-radius: 4px; border-left: 3px solid #2b6cb0; }
         
         /* ================= 橫向時間軸與下方滿版圖表區塊 ================= */
-        .horizontal-times-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background-color: #edf2f7; border-top: 2px solid #000; border-bottom: 2px solid #000; font-size: 12px; font-weight: bold; margin-top: 10px; }
+        .horizontal-times-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background-color: #edf2f7; border-top: 2px solid #000; border-bottom: 2px solid #000; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
         .time-event { display: flex; align-items: center; gap: 5px; color: #2d3748; }
         .time-event input { border: 1px solid #cbd5e0; border-radius: 4px; padding: 2px; font-family: monospace; font-size: 12px; outline: none; }
         
-        .ucd-grid-area { width: 100%; padding: 0; }
-        
         .record-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .record-table th, .record-table td { border: 1px solid #718096; text-align: center; font-size: 11px; height: 18px; box-sizing: border-box; overflow: hidden; padding: 0; }
-        
         .row-header { width: 75px; max-width: 75px; min-width: 75px; text-align: right; padding-right: 4px; font-weight: bold; background-color: #edf2f7; border-right: 2px solid #000; box-sizing: border-box; }
         .data-cell { color: #2d3748; font-weight: bold; white-space: nowrap; font-size: 10px; }
         
@@ -107,16 +115,28 @@
         .btn-export-csv { background-color: #38a169; }
         .btn-export-csv:hover { background-color: #276749; transform: translateY(-2px); }
         
-        /* ================= 神奇的列印樣式 (Print CSS) ================= */
+        /* ================= 完美 PDF 列印樣式 (Print CSS) ================= */
         @media print {
             @page { size: A3 landscape; margin: 10mm; }
             body { background-color: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .input-panel, .bottom-export-panel, .btn-toggle-all, .btn-toggle-block, .btn-del, .drug-selector { display: none !important; }
+            
+            .input-panel, .bottom-export-panel, .btn-toggle-all, .btn-toggle-block, .btn-del, .drug-selector, .pagination-panel, .chart-controls-panel { display: none !important; }
+            
             .app-container { max-width: 100%; }
-            .ucd-form-container { box-shadow: none; border: 2px solid #000; }
-            .plan-block { box-shadow: none; border: 1px solid #000; break-inside: avoid; }
+            .ucd-form-container { box-shadow: none !important; border: none !important; background: transparent !important; }
+            .ucd-top-info { border: 2px solid #000; margin-bottom: 15px; break-inside: avoid; }
+            .plan-container { border: 2px solid #000; margin-bottom: 15px; break-inside: avoid; }
+            .horizontal-times-bar { border: 2px solid #000; margin-bottom: 15px; break-inside: avoid; }
+            .page-view { display: block !important; border: 2px solid #000; margin-bottom: 15px; padding-bottom: 2px; break-inside: avoid; }
+            
+            .page-view.page-2, .page-view.page-3, .page-view.page-4, .page-view.page-5, 
+            .page-view.page-6, .page-view.page-7, .page-view.page-8 { page-break-before: always; }
+            
+            .print-only-header { display: block !important; font-size: 16px; font-weight: bold; border-bottom: 2px solid #000; margin-bottom: 10px; padding: 5px 10px; background-color: #edf2f7; }
+            
             .chart-wrapper { height: 320px; }
             canvas { height: 320px !important; width: 100% !important; }
+            .ucd-comments { border: 2px solid #000; }
         }
     </style>
 </head>
@@ -126,12 +146,10 @@
 
     <div class="input-panel">
         <div class="input-group time-group"><label>紀錄時間</label><input type="time" id="record-time"></div>
-        
         <div class="input-group"><label>Anesthetic</label><input type="text" id="anes" placeholder="%"></div>
         <div class="input-group"><label>O2 L/min</label><input type="text" id="o2" placeholder="L/min"></div>
         <div class="input-group"><label>SpO2</label><input type="number" id="spo2" placeholder="%"></div>
         <div class="input-group"><label>ETCO2</label><input type="number" id="etco2" placeholder="mmHg"></div>
-        
         <div class="input-group"><label>Peak</label><input type="number" id="peak" placeholder="cmH2O"></div>
         <div class="input-group"><label>TV</label><input type="number" id="tv" placeholder="ml"></div>
         <div class="input-group"><label>RR</label><input type="number" id="rr" placeholder="bpm"></div>
@@ -141,7 +159,6 @@
         <div class="input-group"><label>Sys BP (V)</label><input type="number" id="sysBP" placeholder="mmHg"></div>
         <div class="input-group"><label>Dia BP (^)</label><input type="number" id="diaBP" placeholder="mmHg"></div>
         <div class="input-group"><label>Mean BP (x)</label><input type="number" id="meanBP" placeholder="mmHg"></div>
-        
         <div style="width: 2px; background: #cbd5e0; margin: 0 5px;"></div>
         
         <div class="input-group fluid-group">
@@ -173,7 +190,7 @@
         <div class="ucd-top-info">
             <div class="header-grid">
                 <div class="info-col">
-                    <div class="info-line"><span>Animal ID #:</span><input type="text"></div>
+                    <div class="info-line"><span>Animal ID #:</span><input type="text" oninput="syncPatientId(this.value)"></div>
                     <div class="info-line"><span>Species:</span><input type="text"></div>
                     <div class="info-line"><span>Weight in Kg:</span><input type="number" id="patient-weight" style="width: 60px;" oninput="updateGlobalCalculations()"></div>
                     <div class="info-line"><span>Age:</span><input type="text"></div>
@@ -402,30 +419,33 @@
             <div class="time-event">Extubated: <input type="time"></div>
         </div>
         
-        <div class="ucd-grid-area">
-            <table class="record-table" id="topTable">
-                <tr id="row-time"><td class="row-header" style="background-color: #e2e8f0;">Time</td></tr>
-                <tr id="row-anes"><td class="row-header">Anesthetic</td></tr>
-                <tr id="row-o2"><td class="row-header">O2 L/min</td></tr>
-                <tr id="row-spo2"><td class="row-header">SpO2</td></tr>
-                <tr id="row-etco2"><td class="row-header">ETCO2</td></tr>
-                <tr id="row-peak"><td class="row-header">Peak</td></tr>
-                <tr id="row-tv"><td class="row-header">TV</td></tr>
-                <tr id="row-rr"><td class="row-header">RR</td></tr>
-            </table>
-            
-            <div class="chart-wrapper">
-                <canvas id="anesthesiaChart"></canvas>
-            </div>
-            
-            <table class="record-table" id="bottomTable">
-                <tr id="row-fluids"><td class="row-header">Fluids</td></tr>
-                <tr id="row-temp"><td class="row-header">Temp (°C)</td></tr>
-                <tr id="row-cri" style="height: 25px;"><td class="row-header">CRI</td></tr>
-            </table>
+        <div class="pagination-panel">
+            <div style="display: flex; align-items: center; margin-right: 15px; color: #4a5568;">紀錄分頁：</div>
+            <button id="btn-page-1" class="page-btn active" onclick="switchPage(1)">第一頁</button>
+            <button id="btn-page-2" class="page-btn" onclick="switchPage(2)">第二頁</button>
+            <button id="btn-page-3" class="page-btn" onclick="switchPage(3)">第三頁</button>
+            <button id="btn-page-4" class="page-btn" onclick="switchPage(4)">第四頁</button>
+            <button id="btn-page-5" class="page-btn" onclick="switchPage(5)">第五頁</button>
+            <button id="btn-page-6" class="page-btn" onclick="switchPage(6)">第六頁</button>
+            <button id="btn-page-7" class="page-btn" onclick="switchPage(7)">第七頁</button>
+            <button id="btn-page-8" class="page-btn" onclick="switchPage(8)">第八頁</button>
         </div>
 
-        <div class="ucd-comments">
+        <div class="chart-controls-panel">
+            <span style="font-size: 13px; font-weight: bold; color: #4a5568;">圖表折線控制：</span>
+            <button class="line-toggle-btn" onclick="toggleLine(0, this)">Pulse (心率)</button>
+            <button class="line-toggle-btn" onclick="toggleLine(1, this)">Sys BP</button>
+            <button class="line-toggle-btn" onclick="toggleLine(2, this)">Dia BP</button>
+            <button class="line-toggle-btn" onclick="toggleLine(3, this)">Mean BP</button>
+            <button class="line-toggle-btn" onclick="toggleLine(4, this)">SpO2 (血氧)</button>
+            <button class="line-toggle-btn" onclick="toggleLine(5, this)">ETCO2 (吐氣末)</button>
+            <button class="line-toggle-btn" onclick="toggleLine(6, this)">RR (呼吸)</button>
+            <button class="line-toggle-btn" onclick="toggleLine(7, this)">Temp (體溫)</button>
+        </div>
+        
+        <div id="grids-wrapper" style="width: 100%;"></div>
+
+        <div class="ucd-comments" style="margin-top: 10px;">
             <div class="comments-title">Comments:</div>
             <textarea class="comments-box" placeholder="輸入備註或特殊事件紀錄..."></textarea>
         </div>
@@ -518,16 +538,266 @@ const criOptionsHTML = `
     <option value="CUSTOM">+ 自訂 CRI (Custom)</option>
 `;
 
+// ================= Y 軸自適應轉換公式 =================
+// 0~50: 1單位佔0.2格 (5=1格)
+// 50~100: 1單位佔0.1格 (10=1格)
+// 100~300: 1單位佔0.05格 (20=1格)
+function mapY(val) {
+    if (val === null || val === undefined || val === '') return null;
+    let v = Number(val);
+    if (isNaN(v)) return null;
+    if (v <= 50) return v / 5;
+    if (v <= 100) return 10 + (v - 50) / 10;
+    return 15 + (v - 100) / 20;
+}
+
+// ================= 多頁面架構與時間追蹤系統 =================
+const TOTAL_PAGES = 8;
+const SLOTS_PER_PAGE = 30;
+let currentGlobalSlot = 0; 
+let charts = [];
+let timeInputEdited = false;
+
+const topRowDefs = [
+    { id: 'row-time', name: 'Time', bg: '#e2e8f0' },
+    { id: 'row-anes', name: 'Anesthetic' },
+    { id: 'row-o2', name: 'O2 L/min' },
+    { id: 'row-spo2', name: 'SpO2' },
+    { id: 'row-etco2', name: 'ETCO2' },
+    { id: 'row-peak', name: 'Peak' },
+    { id: 'row-tv', name: 'TV' },
+    { id: 'row-rr', name: 'RR' },
+    { id: 'row-pulse', name: 'Pulse' },
+    { id: 'row-sysbp', name: 'Sys BP' },
+    { id: 'row-diabp', name: 'Dia BP' },
+    { id: 'row-meanbp', name: 'Mean BP' }
+];
+
+const bottomRowDefs = [
+    { id: 'row-fluids', name: 'Fluids' },
+    { id: 'row-temp', name: 'Temp (°C)' },
+    { id: 'row-cri', name: 'CRI', height: '25px', cellStyle: 'white-space: normal; word-break: break-all; line-height: 1.1; padding: 2px;' }
+];
+
+function buildMultiPageGrids() {
+    const wrapper = document.getElementById('grids-wrapper');
+    let gridHTML = '';
+
+    for (let p = 1; p <= TOTAL_PAGES; p++) {
+        gridHTML += `<div class="page-view page-${p} ${p === 1 ? 'active' : ''}">`;
+        if (p > 1) {
+            gridHTML += `<div class="print-only-header">Evergreen Anesthesia Record - Page ${p} &nbsp;&nbsp;|&nbsp;&nbsp; Animal ID: <span class="print-id-sync"></span></div>`;
+        }
+        gridHTML += `<table class="record-table">`;
+        topRowDefs.forEach(r => {
+            gridHTML += `<tr><td class="row-header" style="${r.bg ? 'background-color:'+r.bg+';' : ''}">${r.name}</td>`;
+            for(let i = 0; i < SLOTS_PER_PAGE; i++) {
+                gridHTML += `<td class="data-cell" id="${r.id}-${(p-1) * SLOTS_PER_PAGE + i}"></td>`;
+            }
+            gridHTML += `</tr>`;
+        });
+        gridHTML += `</table><div class="chart-wrapper"><canvas id="anesthesiaChart-${p}"></canvas></div><table class="record-table">`;
+        bottomRowDefs.forEach(r => {
+            gridHTML += `<tr style="${r.height ? 'height:'+r.height+';' : ''}"><td class="row-header">${r.name}</td>`;
+            for(let i = 0; i < SLOTS_PER_PAGE; i++) {
+                gridHTML += `<td class="data-cell" id="${r.id}-${(p-1) * SLOTS_PER_PAGE + i}" style="${r.cellStyle || ''}"></td>`;
+            }
+            gridHTML += `</tr>`;
+        });
+        gridHTML += `</table></div>`;
+    }
+    wrapper.innerHTML = gridHTML;
+}
+
+// 建立 8 個獨立的 Chart 實例 (套用非線性Y軸邏輯)
+function initCharts() {
+    for (let p = 1; p <= TOTAL_PAGES; p++) {
+        const ctx = document.getElementById(`anesthesiaChart-${p}`).getContext('2d');
+        const emptyData = () => Array(SLOTS_PER_PAGE).fill(null); 
+        
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(SLOTS_PER_PAGE).fill(''),
+                datasets: [
+                    { label: 'Pulse', data: emptyData(), borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 1)', pointStyle: 'circle', pointRadius: 4, fill: false, tension: 0, spanGaps: true, showLine: false, borderDash: [5, 5], borderWidth: 1.5 },
+                    { label: 'Sys BP', data: emptyData(), borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 1)', pointStyle: 'triangle', pointRadius: 5, rotation: 180, fill: false, tension: 0, spanGaps: true, showLine: false, borderDash: [5, 5], borderWidth: 1.5 },
+                    { label: 'Dia BP', data: emptyData(), borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 1)', pointStyle: 'triangle', pointRadius: 5, fill: false, tension: 0, spanGaps: true, showLine: false, borderDash: [5, 5], borderWidth: 1.5 },
+                    { label: 'Mean BP', data: emptyData(), borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 1)', pointStyle: 'crossRot', pointRadius: 4, fill: false, tension: 0, spanGaps: true, showLine: false, borderDash: [5, 5], borderWidth: 1.5 },
+                    
+                    { label: 'SpO2', data: emptyData(), borderColor: '#805ad5', backgroundColor: '#805ad5', pointStyle: 'rect', pointRadius: 4, fill: false, tension: 0, spanGaps: true, showLine: false, borderDash: [5, 5], borderWidth: 1.5 },
+                    { label: 'ETCO2', data: emptyData(), borderColor: '#38a169', backgroundColor: '#38a169', pointStyle: 'rectRot', pointRadius: 5, fill: false, tension: 0, spanGaps: true, showLine: false, borderDash: [5, 5], borderWidth: 1.5 },
+                    { label: 'RR', data: emptyData(), borderColor: 'red', backgroundColor: 'red', pointStyle: 'star', pointRadius: 5, fill: false, tension: 0, spanGaps: true, showLine: false, borderDash: [5, 5], borderWidth: 1.5 },
+                    { label: 'Temp', data: emptyData(), borderColor: '#d53f8c', backgroundColor: '#d53f8c', pointStyle: 'cross', pointRadius: 4, fill: false, tension: 0, spanGaps: true, showLine: false, borderDash: [5, 5], borderWidth: 1.5 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, layout: { padding: 0 }, 
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            // 💡 Tooltip 反向運算，顯示使用者輸入的原始真實數值
+                            label: function(context) {
+                                let val = context.raw;
+                                if (val === null) return '';
+                                let realVal = 0;
+                                if (val <= 10) realVal = val * 5;
+                                else if (val <= 15) realVal = 50 + (val - 10) * 10;
+                                else realVal = 100 + (val - 15) * 20;
+                                realVal = Math.round(realVal * 100) / 100;
+                                return context.dataset.label + ': ' + realVal;
+                            }
+                        }
+                    }
+                }, 
+                scales: {
+                    x: { grid: { display: true, drawOnChartArea: true, color: '#e2e8f0' }, ticks: { display: false } },
+                    // 💡 完美的等距自適應 Y 軸
+                    y: { 
+                        min: 0, 
+                        max: 25, 
+                        ticks: { 
+                            stepSize: 1,
+                            callback: function(value) {
+                                if (value <= 10) return value * 5;
+                                if (value <= 15) return 50 + (value - 10) * 10;
+                                if (value <= 25) return 100 + (value - 15) * 20;
+                                return '';
+                            },
+                            font: { size: 10 }
+                        },
+                        grid: { color: '#e2e8f0' }, 
+                        afterFit: function(scale) { scale.width = 75; } 
+                    }
+                },
+                animation: false
+            }
+        });
+        charts.push(chart);
+    }
+}
+
+// 圖表折線獨立開關邏輯 (總共 8 個開關)
+let lineVisibility = [false, false, false, false, false, false, false, false];
+function toggleLine(dsIndex, btn) {
+    lineVisibility[dsIndex] = !lineVisibility[dsIndex];
+    if(lineVisibility[dsIndex]) {
+        btn.classList.add('active');
+    } else {
+        btn.classList.remove('active');
+    }
+    // 同步更新 8 個分頁的圖表
+    charts.forEach(chart => {
+        chart.data.datasets[dsIndex].showLine = lineVisibility[dsIndex];
+        chart.update();
+    });
+}
+
 window.onload = function() {
     document.querySelectorAll('.drug-selector:not(.cri-selector)').forEach(sel => sel.innerHTML = regularOptionsHTML);
     document.querySelectorAll('.cri-selector').forEach(sel => sel.innerHTML = criOptionsHTML);
     
-    // 💡 預設開啟時為現在時間
-    const now = new Date();
-    const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-    document.getElementById('record-time').value = timeStr;
+    buildMultiPageGrids();
+    initCharts();
+
+    const timeInput = document.getElementById('record-time');
+    const updateToNow = () => {
+        const now = new Date();
+        timeInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    };
+    updateToNow();
+
+    timeInput.addEventListener('input', () => { timeInputEdited = true; });
+
+    setInterval(() => {
+        if (!timeInputEdited) { updateToNow(); }
+    }, 30000);
 };
 
+function switchPage(p) {
+    document.querySelectorAll('.page-btn').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
+    document.getElementById(`btn-page-${p}`).classList.add('active');
+    document.querySelector(`.page-view.page-${p}`).classList.add('active');
+    if (charts[p-1]) { charts[p-1].resize(); charts[p-1].update(); }
+}
+
+function syncPatientId(val) {
+    document.querySelectorAll('.print-id-sync').forEach(el => el.textContent = val);
+}
+
+function addRecord() {
+    if (currentGlobalSlot >= TOTAL_PAGES * SLOTS_PER_PAGE) { alert('表單已完全滿載 (240格)！'); return; }
+
+    const timeStr = document.getElementById('record-time').value;
+    if(!timeStr) { alert('請輸入紀錄時間！'); return; }
+
+    let targetPage = Math.floor(currentGlobalSlot / SLOTS_PER_PAGE) + 1;
+    let localSlot = currentGlobalSlot % SLOTS_PER_PAGE;
+    switchPage(targetPage);
+
+    // 抓取上方輸入的值
+    const anesVal = document.getElementById('anes').value || '-';
+    const o2Val = document.getElementById('o2').value || '-';
+    const spo2Val = document.getElementById('spo2').value || '-';
+    const etco2Val = document.getElementById('etco2').value || '-';
+    const peakVal = document.getElementById('peak').value || '-';
+    const tvVal = document.getElementById('tv').value || '-';
+    const rrVal = document.getElementById('rr').value || '-';
+    const tempVal = document.getElementById('temp').value || '-';
+
+    document.getElementById(`row-time-${currentGlobalSlot}`).textContent = timeStr;
+    document.getElementById(`row-anes-${currentGlobalSlot}`).textContent = anesVal;
+    document.getElementById(`row-o2-${currentGlobalSlot}`).textContent = o2Val;
+    document.getElementById(`row-spo2-${currentGlobalSlot}`).textContent = spo2Val;
+    document.getElementById(`row-etco2-${currentGlobalSlot}`).textContent = etco2Val;
+    document.getElementById(`row-peak-${currentGlobalSlot}`).textContent = peakVal;
+    document.getElementById(`row-tv-${currentGlobalSlot}`).textContent = tvVal;
+    document.getElementById(`row-rr-${currentGlobalSlot}`).textContent = rrVal;
+
+    const pulseNum = document.getElementById('pulse').value ? Number(document.getElementById('pulse').value) : null;
+    const sysNum = document.getElementById('sysBP').value ? Number(document.getElementById('sysBP').value) : null;
+    const diaNum = document.getElementById('diaBP').value ? Number(document.getElementById('diaBP').value) : null;
+    const meanNum = document.getElementById('meanBP').value ? Number(document.getElementById('meanBP').value) : null;
+
+    const spo2Num = document.getElementById('spo2').value ? Number(document.getElementById('spo2').value) : null;
+    const etco2Num = document.getElementById('etco2').value ? Number(document.getElementById('etco2').value) : null;
+    const rrNum = document.getElementById('rr').value ? Number(document.getElementById('rr').value) : null;
+    const tempNum = document.getElementById('temp').value ? Number(document.getElementById('temp').value) : null;
+
+    document.getElementById(`row-pulse-${currentGlobalSlot}`).textContent = pulseNum !== null ? pulseNum : '-';
+    document.getElementById(`row-sysbp-${currentGlobalSlot}`).textContent = sysNum !== null ? sysNum : '-';
+    document.getElementById(`row-diabp-${currentGlobalSlot}`).textContent = diaNum !== null ? diaNum : '-';
+    document.getElementById(`row-meanbp-${currentGlobalSlot}`).textContent = meanNum !== null ? meanNum : '-';
+
+    // 💡 套用 mapY 將真實數字轉換成圖表 Y 軸座標位置
+    let currentChart = charts[targetPage - 1];
+    currentChart.data.datasets[0].data[localSlot] = mapY(pulseNum);
+    currentChart.data.datasets[1].data[localSlot] = mapY(sysNum);
+    currentChart.data.datasets[2].data[localSlot] = mapY(diaNum);
+    currentChart.data.datasets[3].data[localSlot] = mapY(meanNum);
+    currentChart.data.datasets[4].data[localSlot] = mapY(spo2Num);
+    currentChart.data.datasets[5].data[localSlot] = mapY(etco2Num);
+    currentChart.data.datasets[6].data[localSlot] = mapY(rrNum);
+    currentChart.data.datasets[7].data[localSlot] = mapY(tempNum);
+    currentChart.update();
+
+    const fluidType = document.getElementById('fluid-type').value;
+    const fluidAmt = document.getElementById('fluids').value;
+    document.getElementById(`row-fluids-${currentGlobalSlot}`).textContent = fluidAmt !== '' ? `${fluidType} ${fluidAmt}` : '-';
+    document.getElementById(`row-temp-${currentGlobalSlot}`).textContent = tempVal;
+    const criElem = document.getElementById('cri');
+    document.getElementById(`row-cri-${currentGlobalSlot}`).textContent = (criElem && criElem.value) ? criElem.value : '-';
+
+    currentGlobalSlot++;
+
+    timeInputEdited = false;
+    const realNow = new Date();
+    document.getElementById('record-time').value = String(realNow.getHours()).padStart(2, '0') + ':' + String(realNow.getMinutes()).padStart(2, '0');
+}
+
+// ================= 藥物計算工具 =================
 function addDrugToSection(tbodyId, selectElem) {
     const drug = selectElem.value;
     if (!drug) return;
@@ -652,7 +922,7 @@ function updateGlobalCalculations() {
     document.querySelectorAll('.c-conc').forEach(el => calcCRI(el));
 }
 
-// ================= 收合區塊邏輯 =================
+// ================= 收合與匯出邏輯 =================
 function toggleBlock(btn) {
     const body = btn.closest('.plan-block').querySelector('.plan-block-body');
     if (body.style.display === 'none') { body.style.display = 'block'; btn.textContent = '－'; } 
@@ -676,107 +946,6 @@ function forceExpandAll() {
     document.querySelector('.btn-toggle-all').textContent = '－ 收合麻醉計劃';
 }
 
-// ================= 下方圖表與動態紀錄邏輯 (滿版對齊) =================
-const MAX_SLOTS = 30; 
-let currentSlotIndex = 0; 
-
-function initTables() {
-    const topRows = ['row-time', 'row-anes', 'row-o2', 'row-spo2', 'row-etco2', 'row-peak', 'row-tv', 'row-rr'];
-    const bottomRows = ['row-fluids', 'row-temp'];
-    
-    topRows.forEach(rowId => {
-        const tr = document.getElementById(rowId);
-        for(let i=0; i<MAX_SLOTS; i++) { tr.innerHTML += `<td class="data-cell" id="${rowId}-${i}"></td>`; }
-    });
-    bottomRows.forEach(rowId => {
-        const tr = document.getElementById(rowId);
-        for(let i=0; i<MAX_SLOTS; i++) { tr.innerHTML += `<td class="data-cell" id="${rowId}-${i}"></td>`; }
-    });
-    
-    const criTr = document.getElementById('row-cri');
-    for(let i=0; i<MAX_SLOTS; i++) { 
-        criTr.innerHTML += `<td class="data-cell" id="row-cri-${i}" style="white-space: normal; word-break: break-all; line-height: 1.1; padding: 2px;"></td>`;
-    }
-}
-initTables();
-
-const ctx = document.getElementById('anesthesiaChart').getContext('2d');
-const emptyData = Array(MAX_SLOTS).fill(null); 
-const labels = Array(MAX_SLOTS).fill(''); 
-
-const anesthesiaChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [
-            { label: 'Pulse', data: [...emptyData], borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 1)', pointStyle: 'circle', pointRadius: 4, fill: false, tension: 0, spanGaps: true },
-            { label: 'Sys BP', data: [...emptyData], borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 1)', pointStyle: 'triangle', pointRadius: 5, rotation: 180, fill: false, tension: 0, spanGaps: true, showLine: false },
-            { label: 'Dia BP', data: [...emptyData], borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 1)', pointStyle: 'triangle', pointRadius: 5, fill: false, tension: 0, spanGaps: true, showLine: false },
-            { label: 'Mean BP', data: [...emptyData], borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 1)', pointStyle: 'crossRot', pointRadius: 4, fill: false, tension: 0, spanGaps: true, showLine: false }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: 0 }, 
-        plugins: { legend: { display: false } }, 
-        scales: {
-            x: { offset: true, grid: { display: true, drawOnChartArea: true, color: '#e2e8f0' }, ticks: { display: false } },
-            /* 💡 修改點：圖表 Y 軸上限為 300，間隔改為 20 */
-            y: { min: 0, max: 300, ticks: { stepSize: 20 }, grid: { color: '#e2e8f0' }, afterFit: function(scale) { scale.width = 75; } }
-        }
-    }
-});
-
-function addRecord() {
-    if (currentSlotIndex >= MAX_SLOTS) { alert('表單已滿 30 格！'); return; }
-
-    /* 💡 回溯補填功能：抓取輸入框的時間，而非電腦現在時間 */
-    const timeStr = document.getElementById('record-time').value;
-    if(!timeStr) { alert('請輸入紀錄時間！'); return; }
-
-    document.getElementById(`row-time-${currentSlotIndex}`).textContent = timeStr;
-    document.getElementById(`row-anes-${currentSlotIndex}`).textContent = document.getElementById('anes').value || '-';
-    document.getElementById(`row-o2-${currentSlotIndex}`).textContent = document.getElementById('o2').value || '-';
-    document.getElementById(`row-spo2-${currentSlotIndex}`).textContent = document.getElementById('spo2').value || '-';
-    document.getElementById(`row-etco2-${currentSlotIndex}`).textContent = document.getElementById('etco2').value || '-';
-    document.getElementById(`row-peak-${currentSlotIndex}`).textContent = document.getElementById('peak').value || '-';
-    document.getElementById(`row-tv-${currentSlotIndex}`).textContent = document.getElementById('tv').value || '-';
-    document.getElementById(`row-rr-${currentSlotIndex}`).textContent = document.getElementById('rr').value || '-';
-
-    const fluidType = document.getElementById('fluid-type').value;
-    const fluidAmt = document.getElementById('fluids').value;
-    document.getElementById(`row-fluids-${currentSlotIndex}`).textContent = fluidAmt !== '' ? `${fluidType} ${fluidAmt}` : '-';
-
-    document.getElementById(`row-temp-${currentSlotIndex}`).textContent = document.getElementById('temp').value || '-';
-    
-    const criElem = document.getElementById('cri');
-    document.getElementById(`row-cri-${currentSlotIndex}`).textContent = (criElem && criElem.value) ? criElem.value : '-';
-
-    const pulse = document.getElementById('pulse').value ? Number(document.getElementById('pulse').value) : null;
-    const sys = document.getElementById('sysBP').value ? Number(document.getElementById('sysBP').value) : null;
-    const dia = document.getElementById('diaBP').value ? Number(document.getElementById('diaBP').value) : null;
-    const mean = document.getElementById('meanBP').value ? Number(document.getElementById('meanBP').value) : null;
-
-    anesthesiaChart.data.datasets[0].data[currentSlotIndex] = pulse;
-    anesthesiaChart.data.datasets[1].data[currentSlotIndex] = sys;
-    anesthesiaChart.data.datasets[2].data[currentSlotIndex] = dia;
-    anesthesiaChart.data.datasets[3].data[currentSlotIndex] = mean;
-
-    anesthesiaChart.update();
-    currentSlotIndex++;
-
-    /* 💡 自動遞增：每按一次「填入」，時間自動加 5 分鐘 */
-    if (timeStr) {
-        const [h, m] = timeStr.split(':').map(Number);
-        const nextDate = new Date();
-        nextDate.setHours(h);
-        nextDate.setMinutes(m + 5);
-        document.getElementById('record-time').value = String(nextDate.getHours()).padStart(2, '0') + ':' + String(nextDate.getMinutes()).padStart(2, '0');
-    }
-}
-
-// ================= 原生列印匯出 PDF =================
 function exportPDFNative() {
     forceExpandAll(); 
     setTimeout(() => {
@@ -784,10 +953,9 @@ function exportPDFNative() {
     }, 300); 
 }
 
-// ================= 匯出 CSV =================
 function exportCSV() {
-    if (currentSlotIndex === 0) {
-        alert("目前沒有生命徵象資料可以匯出喔！");
+    if (currentGlobalSlot === 0) {
+        alert("目前沒有資料可以匯出喔！");
         return;
     }
 
@@ -795,7 +963,8 @@ function exportCSV() {
     let headers = ["Time", "Anesthetic", "O2 L/min", "SpO2 (%)", "ETCO2 (mmHg)", "Peak (cmH2O)", "TV (ml)", "RR (bpm)", "Pulse (bpm)", "Sys BP (mmHg)", "Dia BP (mmHg)", "Mean BP (mmHg)", "Fluids", "Temp (°C)", "CRI"];
     csvContent += headers.join(",") + "\n";
 
-    for(let i = 0; i < currentSlotIndex; i++) {
+    for(let i = 0; i < currentGlobalSlot; i++) {
+        // 直接從 HTML 網格內抓取「真實輸入字串」，確保與圖表映射無關、不失真
         let row = [
             document.getElementById(`row-time-${i}`).textContent,
             document.getElementById(`row-anes-${i}`).textContent,
@@ -805,10 +974,10 @@ function exportCSV() {
             document.getElementById(`row-peak-${i}`).textContent,
             document.getElementById(`row-tv-${i}`).textContent,
             document.getElementById(`row-rr-${i}`).textContent,
-            anesthesiaChart.data.datasets[0].data[i] !== null ? anesthesiaChart.data.datasets[0].data[i] : "-",
-            anesthesiaChart.data.datasets[1].data[i] !== null ? anesthesiaChart.data.datasets[1].data[i] : "-",
-            anesthesiaChart.data.datasets[2].data[i] !== null ? anesthesiaChart.data.datasets[2].data[i] : "-",
-            anesthesiaChart.data.datasets[3].data[i] !== null ? anesthesiaChart.data.datasets[3].data[i] : "-",
+            document.getElementById(`row-pulse-${i}`).textContent,
+            document.getElementById(`row-sysbp-${i}`).textContent,
+            document.getElementById(`row-diabp-${i}`).textContent,
+            document.getElementById(`row-meanbp-${i}`).textContent,
             document.getElementById(`row-fluids-${i}`).textContent,
             document.getElementById(`row-temp-${i}`).textContent,
             document.getElementById(`row-cri-${i}`).textContent
@@ -820,7 +989,7 @@ function exportCSV() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Anesthesia_Vitals_Data.csv");
+    link.setAttribute("download", "Anesthesia_Record.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
