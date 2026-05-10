@@ -797,7 +797,7 @@ function addRecord() {
     document.getElementById('record-time').value = String(realNow.getHours()).padStart(2, '0') + ':' + String(realNow.getMinutes()).padStart(2, '0');
 }
 
-// ================= 藥物計算工具 =================
+// ================= 💡 修改點：藥物計算工具的 Route 欄位改為下拉選單 =================
 function addDrugToSection(tbodyId, selectElem) {
     const drug = selectElem.value;
     if (!drug) return;
@@ -821,7 +821,14 @@ function addDrugToSection(tbodyId, selectElem) {
         <td style="width: 10%;"><input type="number" class="r-conc" value="${info.conc}" step="0.01" oninput="calcRegular(this)"></td>
         <td style="width: 10%;"><input type="number" class="r-total calc-result" readonly tabindex="-1"></td>
         <td style="width: 10%;"><input type="number" class="r-amt calc-result" readonly tabindex="-1"></td>
-        <td style="width: 10%;"><input type="text" placeholder="IV/IM"></td>
+        <td style="width: 10%;">
+            <select>
+                <option value=""></option>
+                <option value="IV">IV</option>
+                <option value="IM">IM</option>
+                <option value="SC">SC</option>
+            </select>
+        </td>
         <td style="width: 10%;"><input type="time"></td>
         <td style="width: 5%;"><button class="btn-del" onclick="this.closest('tr').remove();">×</button></td>
     `;
