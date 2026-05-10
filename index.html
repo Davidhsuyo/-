@@ -90,12 +90,6 @@
 </head>
 <body>
 
-<datalist id="route-options">
-    <option value="IV">IV</option>
-    <option value="IM">IM</option>
-    <option value="SC">SC</option>
-</datalist>
-
 <div class="app-container">
 
     <div class="input-panel">
@@ -224,7 +218,6 @@ const drugDB = {
 };
 
 const syringeIcon = new Image();
-// 💡 精準調整 SVG 座標使其絕對置中於點位上
 syringeIcon.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><text x="50%" y="50%" font-size="16" text-anchor="middle" dominant-baseline="central">💉</text></svg>';
 
 const TOTAL_PAGES = 8, SLOTS_PER_PAGE = 30;
@@ -250,7 +243,7 @@ const bottomRowDefs = [
     { id: 'row-time-bottom', name: 'Time', bg: '#e2e8f0' },
     { id: 'row-fluids', name: 'Fluids' }, { id: 'row-temp', name: 'Temp (°C)' },
     { id: 'row-cri', name: 'CRI', height: '25px' },
-    { id: 'row-bolus', name: '術中針劑', height: '25px' }
+    { id: 'row-bolus', name: '術中針劑', height: '25px', cellStyle: 'white-space: normal; word-break: break-all; line-height: 1.1; padding: 2px; color: #c53030 !important;' }
 ];
 
 function buildMultiPageGrids() {
@@ -267,7 +260,7 @@ function buildMultiPageGrids() {
         html += `</table><div class="chart-wrapper"><canvas id="anesthesiaChart-${p}"></canvas></div><table class="record-table">`;
         bottomRowDefs.forEach(r => {
             html += `<tr style="${r.height?'height:'+r.height+';':''}"><td class="row-header" style="${r.bg?'background-color:'+r.bg+';':''}">${r.name}</td>`;
-            for(let i=0; i<30; i++) html += `<td class="data-cell" id="${r.id}-${(p-1)*30+i}"></td>`;
+            for(let i=0; i<30; i++) html += `<td class="data-cell" id="${r.id}-${(p-1)*30+i}" style="${r.cellStyle || ''}"></td>`;
             html += `</tr>`;
         });
         html += `</table></div>`;
@@ -314,7 +307,6 @@ function initCharts() {
             options: {
                 responsive: true, maintainAspectRatio: false,
                 scales: {
-                    // 💡 重點修正：開啟 offset 模式，讓垂直線變成邊框，資料點坐正中央
                     x: { offset: true, grid: { display: true, color: '#e2e8f0' }, ticks: { display: false } },
                     y: { 
                         min: 0, max: 25, 
@@ -355,21 +347,47 @@ function toggleLine(idx, btn) {
     charts.forEach(c => { c.data.datasets[idx].showLine = isVisible; c.update(); });
 }
 
+// 💡 所有給藥的 Route 改為純文字手動輸入
+function addDrugToSection(tbodyId, selectElem) {
+    const drug = selectElem.value;
+    if (!drug) return;
+    const tbody = document.getElementById(tbodyId);
+    const tr = document.createElement('tr');
+    let dName = drug === 'CUSTOM' ? '' : drug;
+    
+    tr.innerHTML = `
+        <td style="text-align: left; padding-left: 5px;"><input type="text" value="${dName}" class="r-drug" placeholder="Drug Name" style="text-align: left; font-weight:bold;"></td>
+        <td style="width: 10%;"><input type="number" class="r-dose" step="0.01" oninput="calcRegular(this)"></td>
+        <td style="width: 10%;"><select class="r-unit" onchange="calcRegular(this)"><option value="mg/kg">mg/kg</option><option value="mcg/kg">mcg/kg</option></select></td>
+        <td style="width: 10%;"><input type="number" class="r-conc" step="0.01" oninput="calcRegular(this)"></td>
+        <td style="width: 10%;"><input type="number" class="r-total calc-result" readonly tabindex="-1"></td>
+        <td style="width: 10%;"><input type="number" class="r-amt calc-result" readonly tabindex="-1"></td>
+        <td style="width: 10%;"><input type="text" class="r-route" placeholder="IV/IM"></td>
+        <td style="width: 10%;"><input type="time"></td>
+        <td style="width: 5%;"><button class="btn-del" onclick="this.closest('tr').remove();">×</button></td>
+    `;
+    tbody.appendChild(tr);
+    selectElem.value = ""; 
+}
+
 function addIntraopBolus(sel) {
     if (!sel.value) return;
     const tr = document.createElement('tr');
+    let dName = sel.value === 'CUSTOM' ? '' : sel.value;
     tr.innerHTML = `
-        <td><input type="text" value="${sel.value==='CUSTOM'?'':sel.value}" class="r-drug"></td>
+        <td><input type="text" value="${dName}" class="r-drug" placeholder="Drug Name"></td>
         <td><input type="number" class="r-dose" step="0.01" oninput="calcInRow(this)"></td>
         <td><select class="r-unit" onchange="calcInRow(this)"><option value="mg/kg">mg/kg</option><option value="mcg/kg">mcg/kg</option></select></td>
         <td><input type="number" class="r-conc" step="0.01" oninput="calcInRow(this)"></td>
         <td><input class="calc-result" readonly tabindex="-1"></td>
         <td><input class="calc-result" readonly tabindex="-1"></td>
-        <td><input type="text" list="route-options" class="r-route"></td>
+        <td><input type="text" class="r-route" placeholder="IV"></td>
         <td><button class="btn-del" onclick="this.closest('tr').remove();">×</button></td>
     `;
     document.getElementById('tbody-intraop').appendChild(tr); sel.value = "";
 }
+
+function calcRegular(elem) { calcInRow(elem); }
 
 function calcInRow(el) {
     const row = el.closest('tr'), wt = parseFloat(document.getElementById('patient-weight').value);
