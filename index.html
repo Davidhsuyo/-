@@ -21,7 +21,7 @@
         .time-group { width: 130px !important; }
         .time-group input { background-color: #fffaf0; border: 1px solid #f6ad55; font-weight: bold; font-size: 14px; width: 100%; }
         
-        /* 插拔管時間外觀 (直接輸入、不同於主紀錄時間) */
+        /* 插拔管時間外觀 (保留不同於主紀錄時間的獨立樣式) */
         .text-time-group { width: 130px !important; }
         .text-time-group input { background-color: #edf2f7; border: 1px solid #a0aec0; font-weight: bold; font-size: 13px; color: #4a5568; width: 100%; }
         
@@ -165,9 +165,9 @@
         <!-- 左側時間直列 -->
         <div style="display: flex; flex-direction: column; gap: 8px;">
             <div class="input-group time-group"><label>紀錄時間</label><input type="time" id="record-time"></div>
-            <!-- 修改為 type="text" 供手動輸入，並調整樣式 -->
-            <div class="input-group text-time-group"><label>Intubation</label><input type="text" id="intub-time" placeholder="輸入時間..." onchange="addTimeComment('Intubation', this.value)"></div>
-            <div class="input-group text-time-group"><label>Extubation</label><input type="text" id="extub-time" placeholder="輸入時間..." onchange="addTimeComment('Extubation', this.value)"></div>
+            <!-- 恢復為 type="time" 供選單/手動輸入，保留獨立樣式 -->
+            <div class="input-group text-time-group"><label>Intubation</label><input type="time" id="intub-time" onchange="addTimeComment('Intubation', this.value)"></div>
+            <div class="input-group text-time-group"><label>Extubation</label><input type="time" id="extub-time" onchange="addTimeComment('Extubation', this.value)"></div>
         </div>
         
         <div style="width: 2px; background: #cbd5e0; margin: 0 5px; align-self: stretch;"></div>
@@ -218,7 +218,7 @@
             <!-- 術中針劑區塊 -->
             <div class="plan-block" style="width: 100%; margin-top: 5px; margin-bottom: 0; border-color: #cbd5e0; box-shadow: none;">
                 <div class="plan-block-header" style="background-color: #2b6cb0;">
-                    <span>💉 術中針劑給予</span>
+                    <span>💉 術中針劑/Bolus藥物</span>
                     <div>
                         <select class="drug-selector" onchange="addIntraopBolus(this)" style="font-weight:normal; font-size: 11px;">
                             <option value="">+ 選擇給藥...</option>
