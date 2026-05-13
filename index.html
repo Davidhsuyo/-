@@ -673,7 +673,8 @@ function initCharts() {
                         label: 'Bolus', 
                         data: emptyData(), 
                         pointRadius: 0, 
-                        showLine: false
+                        showLine: false,
+                        pointStyle: syringeIcon
                     }
                 ]
             },
@@ -703,7 +704,18 @@ function initCharts() {
             options: {
                 responsive: true, maintainAspectRatio: false, layout: { padding: { top: 15 } }, 
                 plugins: { 
-                    legend: { display: false },
+                    legend: { 
+                        display: true,
+                        position: 'bottom',
+                        onClick: function(e, legendItem, legend) {}, // 禁用點擊隱藏，以免跟上方按鈕衝突
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 12,
+                            font: { size: 11, weight: 'bold' },
+                            color: '#4a5568'
+                        }
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
