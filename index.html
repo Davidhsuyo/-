@@ -12,20 +12,20 @@
         * { box-sizing: border-box; }
         
         /* --- 頂部輸入面板 --- */
-        .input-panel { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; justify-content: flex-start; }
+        .input-panel { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: stretch; justify-content: flex-start; }
         .input-group { display: flex; flex-direction: column; width: 75px; } 
         .input-group label { font-size: 11px; font-weight: bold; color: #4a5568; margin-bottom: 4px; white-space: nowrap; }
         .input-group input, .input-group select { padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 13px; text-align: center; }
         
         .time-group { width: 130px !important; }
-        .time-group input { background-color: #fffaf0; border: 1px solid #f6ad55; font-weight: bold; font-size: 14px; }
+        .time-group input { background-color: #fffaf0; border: 1px solid #f6ad55; font-weight: bold; font-size: 14px; width: 100%; }
         
         .fluid-group { width: 130px !important; }
         .fluid-inputs { display: flex; gap: 4px; }
         .fluid-inputs select { width: 60px; padding: 4px; font-size: 11px; }
         .fluid-inputs input { width: 65px; }
         
-        .btn-panel { display: flex; gap: 10px; margin-left: auto; }
+        .btn-panel { display: flex; gap: 10px; margin-left: auto; width: 100%; justify-content: flex-end; }
         .btn-add { background-color: #2b6cb0; color: white; border: none; border-radius: 4px; padding: 0 25px; font-weight: bold; cursor: pointer; height: 42px; font-size: 15px; }
         .btn-add:hover { background-color: #2c5282; }
         
@@ -106,7 +106,7 @@
         .chart-wrapper { width: 100%; border-top: 2px solid #000; border-bottom: 2px solid #000; background-color: #fff; position: relative; }
         canvas { display: block; width: 100%; height: 320px !important; }
         
-        /* 修改後的底部並排面板 (Comments 與 Bolus 表格) */
+        /* 底部並排面板 (Comments 與 Bolus 表格) */
         .bottom-split-panel { padding: 10px 15px; background-color: #fff; display: flex; gap: 20px; }
         .comments-section { flex: 2; display: flex; flex-direction: column; gap: 5px; }
         .comments-title { font-weight: bold; font-size: 14px; }
@@ -156,76 +156,93 @@
 <div class="app-container">
 
     <div class="input-panel">
-        <div class="input-group time-group"><label>紀錄時間</label><input type="time" id="record-time"></div>
-        <div class="input-group"><label>Intubation</label><input type="time" id="intub-time" onchange="addTimeComment('Intubation', this.value)"></div>
-        <div class="input-group"><label>Extubation</label><input type="time" id="extub-time" onchange="addTimeComment('Extubation', this.value)"></div>
         
-        <div style="width: 2px; background: #cbd5e0; margin: 0 5px;"></div>
-        
-        <div class="input-group"><label>Anesthetic</label><input type="text" id="anes" placeholder="%"></div>
-        <div class="input-group"><label>O2 L/min</label><input type="text" id="o2" placeholder="L/min"></div>
-        <div class="input-group"><label>SpO2</label><input type="number" id="spo2" placeholder="%"></div>
-        <div class="input-group"><label>ETCO2</label><input type="number" id="etco2" placeholder="mmHg"></div>
-        <div class="input-group"><label>Peak</label><input type="number" id="peak" placeholder="cmH2O"></div>
-        <div class="input-group"><label>TV</label><input type="number" id="tv" placeholder="ml"></div>
-        <div class="input-group"><label>RR</label><input type="number" id="rr" placeholder="bpm"></div>
-        
-        <div style="width: 2px; background: #cbd5e0; margin: 0 5px;"></div>
-        <div class="input-group"><label>Pulse (•)</label><input type="number" id="pulse" placeholder="bpm"></div>
-        <div class="input-group"><label>Sys BP (V)</label><input type="number" id="sysBP" placeholder="mmHg"></div>
-        <div class="input-group"><label>Dia BP (^)</label><input type="number" id="diaBP" placeholder="mmHg"></div>
-        <div class="input-group"><label>Mean BP (x)</label><input type="number" id="meanBP" placeholder="mmHg"></div>
-        <div style="width: 2px; background: #cbd5e0; margin: 0 5px;"></div>
-        
-        <div class="input-group fluid-group">
-            <label>Fluids</label>
-            <div class="fluid-inputs">
-                <select id="fluid-type">
-                    <option value="LRS">LRS</option>
-                    <option value="0.9% NaCl">0.9% NaCl</option>
-                    <option value="RS">RS</option>
-                    <option value="NS">NS</option>
-                    <option value="Blood">Blood</option>
-                    <option value="Plasma">Plasma</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="number" id="fluids" placeholder="ml">
-            </div>
+        <!-- 左側時間直列 -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="input-group time-group"><label>紀錄時間</label><input type="time" id="record-time"></div>
+            <div class="input-group time-group"><label>Intubation</label><input type="time" id="intub-time" onchange="addTimeComment('Intubation', this.value)"></div>
+            <div class="input-group time-group"><label>Extubation</label><input type="time" id="extub-time" onchange="addTimeComment('Extubation', this.value)"></div>
         </div>
         
-        <div class="input-group"><label>Temp</label><input type="number" id="temp" step="0.1" placeholder="°C"></div>
-        <div class="input-group cri-group"><label>CRI</label><input type="text" id="cri" placeholder="e.g. D3 F2"></div>
+        <div style="width: 2px; background: #cbd5e0; margin: 0 5px; align-self: stretch;"></div>
         
-        <div class="plan-block" style="width: 100%; margin-top: 15px; border-color: #cbd5e0; box-shadow: none;">
-            <div class="plan-block-header" style="background-color: #2b6cb0;">
-                <span>💉 術中針劑給予</span>
-                <div>
-                    <select class="drug-selector" onchange="addIntraopBolus(this)" style="font-weight:normal; font-size: 11px;">
-                        <option value="">+ 選擇給藥...</option>
-                        <option value="CUSTOM">自訂藥物 (Custom)</option>
-                    </select>
+        <!-- 右側數值與針劑輸入列 -->
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; flex: 1; align-items: flex-start; align-content: flex-start;">
+            
+            <!-- 第一列數值 -->
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%; align-items: flex-end;">
+                <div class="input-group"><label>Anesthetic</label><input type="text" id="anes" placeholder="%"></div>
+                <div class="input-group"><label>O2 L/min</label><input type="text" id="o2" placeholder="L/min"></div>
+                <div class="input-group"><label>SpO2</label><input type="number" id="spo2" placeholder="%"></div>
+                <div class="input-group"><label>ETCO2</label><input type="number" id="etco2" placeholder="mmHg"></div>
+                <div class="input-group"><label>Peak</label><input type="number" id="peak" placeholder="cmH2O"></div>
+                <div class="input-group"><label>TV</label><input type="number" id="tv" placeholder="ml"></div>
+                <div class="input-group"><label>RR</label><input type="number" id="rr" placeholder="bpm"></div>
+            </div>
+            
+            <!-- 第二列數值 -->
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%; align-items: flex-end;">
+                <div class="input-group"><label>Pulse (•)</label><input type="number" id="pulse" placeholder="bpm"></div>
+                <div class="input-group"><label>Sys BP (V)</label><input type="number" id="sysBP" placeholder="mmHg"></div>
+                <div class="input-group"><label>Dia BP (^)</label><input type="number" id="diaBP" placeholder="mmHg"></div>
+                <div class="input-group"><label>Mean BP (x)</label><input type="number" id="meanBP" placeholder="mmHg"></div>
+                
+                <div style="width: 2px; background: #cbd5e0; margin: 0 5px; height: 35px; align-self: flex-end;"></div>
+                
+                <div class="input-group fluid-group">
+                    <label>Fluids</label>
+                    <div class="fluid-inputs">
+                        <select id="fluid-type">
+                            <option value="LRS">LRS</option>
+                            <option value="0.9% NaCl">0.9% NaCl</option>
+                            <option value="RS">RS</option>
+                            <option value="NS">NS</option>
+                            <option value="Blood">Blood</option>
+                            <option value="Plasma">Plasma</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <input type="number" id="fluids" placeholder="ml">
+                    </div>
+                </div>
+                
+                <div class="input-group"><label>Temp</label><input type="number" id="temp" step="0.1" placeholder="°C"></div>
+                <div class="input-group cri-group" style="width: 120px;"><label>CRI</label><input type="text" id="cri" placeholder="e.g. D3 F2"></div>
+            </div>
+            
+            <!-- 術中針劑區塊 -->
+            <div class="plan-block" style="width: 100%; margin-top: 5px; margin-bottom: 0; border-color: #cbd5e0; box-shadow: none;">
+                <div class="plan-block-header" style="background-color: #2b6cb0;">
+                    <span>💉 術中針劑給予</span>
+                    <div>
+                        <select class="drug-selector" onchange="addIntraopBolus(this)" style="font-weight:normal; font-size: 11px;">
+                            <option value="">+ 選擇給藥...</option>
+                            <option value="CUSTOM">自訂藥物 (Custom)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="plan-block-body">
+                    <table class="med-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">Drug Name</th>
+                                <th style="width: 10%;">Time</th>
+                                <th style="width: 10%;">Dose</th>
+                                <th style="width: 10%;">Unit</th>
+                                <th style="width: 10%;">Conc. (mg/ml)</th>
+                                <th style="width: 10%;">Total (mg)</th>
+                                <th style="width: 10%;">Amount (mls)</th>
+                                <th style="width: 15%;">Route</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-intraop"></tbody>
+                    </table>
                 </div>
             </div>
-            <div class="plan-block-body">
-                <table class="med-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 25%;">Drug Name</th>
-                            <th style="width: 10%;">Dose</th>
-                            <th style="width: 10%;">Unit</th>
-                            <th style="width: 15%;">Conc. (mg/ml)</th>
-                            <th style="width: 10%;">Total (mg)</th>
-                            <th style="width: 10%;">Amount (mls)</th>
-                            <th style="width: 15%;">Route</th>
-                            <th style="width: 5%;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-intraop"></tbody>
-                </table>
-            </div>
+            
         </div>
-
-        <div class="btn-panel" style="margin-top: 10px; width: 100%; display: flex; justify-content: flex-end;">
+        
+        <div class="btn-panel">
             <button class="btn-add" onclick="addRecord()">填入下方網格記錄表 ⬇</button>
         </div>
     </div>
@@ -503,6 +520,7 @@
                     <thead>
                         <tr>
                             <th>Drug Name</th>
+                            <th>Time</th>
                             <th>Dose</th>
                             <th>Total (mg)</th>
                             <th>Amount</th>
@@ -923,6 +941,8 @@ function addRecord() {
     const intraopRows = document.querySelectorAll('#tbody-intraop tr');
     intraopRows.forEach(row => {
         const dName = row.querySelector('.r-drug').value;
+        let bTime = row.querySelector('.r-time').value;
+        if (!bTime) bTime = timeStr; // 未輸入時間則自動帶入當前主紀錄時間
         const dose = row.querySelector('.r-dose').value;
         const unit = row.querySelector('.r-unit').value;
         const total = row.querySelector('.r-total').value;
@@ -936,6 +956,7 @@ function addRecord() {
             const newTr = document.createElement('tr');
             newTr.innerHTML = `
                 <td>${dName}</td>
+                <td>${bTime}</td>
                 <td>${dose} ${unit}</td>
                 <td>${total}</td>
                 <td>${amt} ml</td>
@@ -1024,11 +1045,12 @@ function addIntraopBolus(selectElem) {
     
     tr.innerHTML = `
         <td style="text-align: left; padding-left: 5px;"><input type="text" value="${dName}" class="r-drug" placeholder="Drug Name" style="text-align: left; font-weight:bold;"></td>
-        <td style="width: 12%;"><input type="number" class="r-dose" step="0.01" oninput="calcRegular(this)"></td>
-        <td style="width: 12%;"><select class="r-unit" onchange="calcRegular(this)"><option value="mg/kg">mg/kg</option><option value="mcg/kg">mcg/kg</option></select></td>
-        <td style="width: 15%;"><input type="number" class="r-conc" step="0.01" oninput="calcRegular(this)"></td>
-        <td style="width: 12%;"><input type="number" class="r-total calc-result" readonly tabindex="-1"></td>
-        <td style="width: 12%;"><input type="number" class="r-amt calc-result" readonly tabindex="-1"></td>
+        <td style="width: 10%;"><input type="time" class="r-time"></td>
+        <td style="width: 10%;"><input type="number" class="r-dose" step="0.01" oninput="calcRegular(this)"></td>
+        <td style="width: 10%;"><select class="r-unit" onchange="calcRegular(this)"><option value="mg/kg">mg/kg</option><option value="mcg/kg">mcg/kg</option></select></td>
+        <td style="width: 10%;"><input type="number" class="r-conc" step="0.01" oninput="calcRegular(this)"></td>
+        <td style="width: 10%;"><input type="number" class="r-total calc-result" readonly tabindex="-1"></td>
+        <td style="width: 10%;"><input type="number" class="r-amt calc-result" readonly tabindex="-1"></td>
         <td style="width: 15%;"><input type="text" class="r-route" placeholder=""></td>
         <td style="width: 5%;"><button class="btn-del" onclick="this.closest('tr').remove();">×</button></td>
     `;
@@ -1166,7 +1188,6 @@ function exportCSV() {
     }
 
     let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-    // 已將 Bolus 移除 CSV 表頭
     let headers = ["Time", "Anesthetic", "O2 L/min", "SpO2 (%)", "ETCO2 (mmHg)", "Peak (cmH2O)", "TV (ml)", "RR (bpm)", "Pulse (bpm)", "Sys BP (mmHg)", "Dia BP (mmHg)", "Mean BP (mmHg)", "Fluids", "Temp (°C)", "CRI"];
     csvContent += headers.join(",") + "\n";
 
