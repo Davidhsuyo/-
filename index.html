@@ -17,8 +17,13 @@
         .input-group label { font-size: 11px; font-weight: bold; color: #4a5568; margin-bottom: 4px; white-space: nowrap; }
         .input-group input, .input-group select { padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 13px; text-align: center; }
         
+        /* 紀錄時間外觀 */
         .time-group { width: 130px !important; }
         .time-group input { background-color: #fffaf0; border: 1px solid #f6ad55; font-weight: bold; font-size: 14px; width: 100%; }
+        
+        /* 插拔管時間外觀 (直接輸入、不同於主紀錄時間) */
+        .text-time-group { width: 130px !important; }
+        .text-time-group input { background-color: #edf2f7; border: 1px solid #a0aec0; font-weight: bold; font-size: 13px; color: #4a5568; width: 100%; }
         
         .fluid-group { width: 130px !important; }
         .fluid-inputs { display: flex; gap: 4px; }
@@ -160,8 +165,9 @@
         <!-- 左側時間直列 -->
         <div style="display: flex; flex-direction: column; gap: 8px;">
             <div class="input-group time-group"><label>紀錄時間</label><input type="time" id="record-time"></div>
-            <div class="input-group time-group"><label>Intubation</label><input type="time" id="intub-time" onchange="addTimeComment('Intubation', this.value)"></div>
-            <div class="input-group time-group"><label>Extubation</label><input type="time" id="extub-time" onchange="addTimeComment('Extubation', this.value)"></div>
+            <!-- 修改為 type="text" 供手動輸入，並調整樣式 -->
+            <div class="input-group text-time-group"><label>Intubation</label><input type="text" id="intub-time" placeholder="輸入時間..." onchange="addTimeComment('Intubation', this.value)"></div>
+            <div class="input-group text-time-group"><label>Extubation</label><input type="text" id="extub-time" placeholder="輸入時間..." onchange="addTimeComment('Extubation', this.value)"></div>
         </div>
         
         <div style="width: 2px; background: #cbd5e0; margin: 0 5px; align-self: stretch;"></div>
@@ -169,7 +175,7 @@
         <!-- 右側數值與針劑輸入列 -->
         <div style="display: flex; flex-wrap: wrap; gap: 10px; flex: 1; align-items: flex-start; align-content: flex-start;">
             
-            <!-- 第一列數值 -->
+            <!-- 第一列數值 (包含 Pulse, BP) -->
             <div style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%; align-items: flex-end;">
                 <div class="input-group"><label>Anesthetic</label><input type="text" id="anes" placeholder="%"></div>
                 <div class="input-group"><label>O2 L/min</label><input type="text" id="o2" placeholder="L/min"></div>
@@ -178,17 +184,17 @@
                 <div class="input-group"><label>Peak</label><input type="number" id="peak" placeholder="cmH2O"></div>
                 <div class="input-group"><label>TV</label><input type="number" id="tv" placeholder="ml"></div>
                 <div class="input-group"><label>RR</label><input type="number" id="rr" placeholder="bpm"></div>
-            </div>
-            
-            <!-- 第二列數值 -->
-            <div style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%; align-items: flex-end;">
+                
+                <div style="width: 2px; background: #cbd5e0; margin: 0 5px; height: 35px; align-self: flex-end;"></div>
+                
                 <div class="input-group"><label>Pulse (•)</label><input type="number" id="pulse" placeholder="bpm"></div>
                 <div class="input-group"><label>Sys BP (V)</label><input type="number" id="sysBP" placeholder="mmHg"></div>
                 <div class="input-group"><label>Dia BP (^)</label><input type="number" id="diaBP" placeholder="mmHg"></div>
                 <div class="input-group"><label>Mean BP (x)</label><input type="number" id="meanBP" placeholder="mmHg"></div>
-                
-                <div style="width: 2px; background: #cbd5e0; margin: 0 5px; height: 35px; align-self: flex-end;"></div>
-                
+            </div>
+            
+            <!-- 第二列數值 (維持 Fluids, Temp, CRI) -->
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%; align-items: flex-end;">
                 <div class="input-group fluid-group">
                     <label>Fluids</label>
                     <div class="fluid-inputs">
@@ -508,7 +514,7 @@
         
         <div id="grids-wrapper" style="width: 100%;"></div>
 
-        <!-- 修改後的底部並排區塊 -->
+        <!-- 底部並排區塊 -->
         <div class="bottom-split-panel">
             <div class="comments-section">
                 <div class="comments-title">Comments:</div>
@@ -1027,7 +1033,7 @@ function addDrugToSection(tbodyId, selectElem) {
         <td style="width: 10%;"><input type="number" class="r-conc" value="${info.conc}" step="0.01" oninput="calcRegular(this)"></td>
         <td style="width: 10%;"><input type="number" class="r-total calc-result" readonly tabindex="-1"></td>
         <td style="width: 10%;"><input type="number" class="r-amt calc-result" readonly tabindex="-1"></td>
-        <td style="width: 10%;"><input type="text" class="r-route" placeholder=""></td>
+        <td style="width: 10%;"><input type="text" class="r-route" placeholder="輸入途徑"></td>
         <td style="width: 10%;"><input type="time"></td>
         <td style="width: 5%;"><button class="btn-del" onclick="this.closest('tr').remove();">×</button></td>
     `;
@@ -1051,7 +1057,7 @@ function addIntraopBolus(selectElem) {
         <td style="width: 10%;"><input type="number" class="r-conc" step="0.01" oninput="calcRegular(this)"></td>
         <td style="width: 10%;"><input type="number" class="r-total calc-result" readonly tabindex="-1"></td>
         <td style="width: 10%;"><input type="number" class="r-amt calc-result" readonly tabindex="-1"></td>
-        <td style="width: 15%;"><input type="text" class="r-route" placeholder=""></td>
+        <td style="width: 15%;"><input type="text" class="r-route" placeholder="輸入途徑"></td>
         <td style="width: 5%;"><button class="btn-del" onclick="this.closest('tr').remove();">×</button></td>
     `;
     tbody.appendChild(tr);
