@@ -651,7 +651,7 @@ const bottomRowDefs = [
     { id: 'row-cri', name: 'CRI', height: '25px', cellStyle: 'white-space: normal; padding: 2px;' }
 ];
 
-// 處理網格內文字修改並即時連動圖表
+// 新增：處理網格內文字修改並即時連動圖表
 function updateChartFromGrid(el) {
     const idParts = el.id.split('-');
     if (idParts.length < 3) return;
@@ -946,7 +946,7 @@ function addRecord() {
     const timeStr = document.getElementById('record-time').value;
     if(!timeStr) { alert('請輸入紀錄時間！'); return; }
 
-    // 新增邏輯：檢查時間是否已經存在，如果存在則進入覆寫模式
+    // 尋找是否已經有相同時間的紀錄
     let targetGlobalSlot = currentGlobalSlot;
     let isOverwrite = false;
     for (let i = 0; i < currentGlobalSlot; i++) {
@@ -971,7 +971,7 @@ function addRecord() {
 
     // 定義更新文字的輔助函式：
     // 如果是新紀錄(!isOverwrite)，空值就補 '-'；
-    // 如果是覆寫模式(isOverwrite)，只有當下輸入框「有值」才覆寫，若是空值就略過，保留原本表格內的數據。
+    // 如果是合併覆寫模式(isOverwrite)，只有當下輸入框「有值」才覆寫，若是空值就略過，保留原本表格內的數據。
     const updateText = (elId, inputId) => {
         const inputVal = document.getElementById(inputId).value;
         const el = document.getElementById(elId);
@@ -996,9 +996,8 @@ function addRecord() {
     updateText(`row-meanbp-${targetGlobalSlot}`, 'meanBP');
     
     updateText(`row-temp-${targetGlobalSlot}`, 'temp');
-    updateText(`row-cri-${targetGlobalSlot}`, 'cri');
-
-    // Fluids 欄位因為是由下拉選單與數字框組成，需獨立處理
+    
+    // Fluids 欄位特殊處理
     const fluidType = document.getElementById('fluid-type').value;
     const fluidAmt = document.getElementById('fluids').value;
     const fluidCell = document.getElementById(`row-fluids-${targetGlobalSlot}`);
@@ -1006,6 +1005,15 @@ function addRecord() {
         fluidCell.textContent = fluidAmt !== '' ? `${fluidType} ${fluidAmt}` : '-';
     } else if (fluidAmt !== '') {
         fluidCell.textContent = `${fluidType} ${fluidAmt}`;
+    }
+
+    // CRI 特殊處理
+    const criElem = document.getElementById('cri');
+    const criCell = document.getElementById(`row-cri-${targetGlobalSlot}`);
+    if (!isOverwrite) {
+        criCell.textContent = (criElem && criElem.value) ? criElem.value : '-';
+    } else if (criElem && criElem.value !== '') {
+        criCell.textContent = criElem.value;
     }
 
     // Bolus 處理
@@ -1024,7 +1032,7 @@ function addRecord() {
         if(dName) {
             bolusNameOnlyArray.push(dName.substring(0, 6)); 
             
-            // 寫入下方的 Bolus 專屬表格 (針對當前紀錄的頁數)
+            // 寫入下方的 Bolus 專屬表格
             const newTr = document.createElement('tr');
             newTr.innerHTML = `
                 <td>${dName}</td>
@@ -1038,8 +1046,7 @@ function addRecord() {
         }
     });
 
-    // 圖表更新：直接讀取網格(DOM)上最終顯示的數字來畫圖
-    // 這樣可以保證圖表與表格數據100%同步，無論是保留了舊數據還是寫入了新數據
+    // 圖表更新：直接讀取網格(DOM)上最終顯示的數字來畫圖，確保完美同步
     let currentChart = charts[targetPage - 1];
     const parseChartVal = (elId) => {
         const txt = document.getElementById(elId).textContent;
@@ -1068,7 +1075,7 @@ function addRecord() {
     
     autoFitText(`row-cri-${targetGlobalSlot}`);
 
-    // 如果不是覆寫模式，表示開啟了新的一格，全域格數加1
+    // 如果不是覆寫模式，全域格數加1
     if (!isOverwrite) {
         currentGlobalSlot++;
     }
@@ -1079,7 +1086,7 @@ function addRecord() {
     const realNow = new Date();
     document.getElementById('record-time').value = String(realNow.getHours()).padStart(2, '0') + ':' + String(realNow.getMinutes()).padStart(2, '0');
 
-    // 每次填入後，自動清空第一列的生理數值，保留第二列的輸液與溫度
+    // 每次填入後，自動清空第一列的生理數值
     document.getElementById('anes').value = '';
     document.getElementById('o2').value = '';
     document.getElementById('spo2').value = '';
